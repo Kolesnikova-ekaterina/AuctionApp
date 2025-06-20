@@ -1,0 +1,89 @@
+@page "{id}"
+@model AuctionApp.Pages.Account.IndexModel
+@using AuctionApp.Models
+@inject Microsoft.AspNetCore.Identity.UserManager<AuctionApp.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Список аукционов";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<div class="container auction-content">
+    <h2>Аукционы</h2>
+    <h3>Аукционов всего @Model.Auctions.Count </h3>
+    <h3>Аукционов закрыто @Model.Auctions.Where(a => (a.Status == AuctionStatus.Closing)).Count() </h3>
+    <h3>Аукционов успешных @Model.Auctions.Where(a => (a.Status == AuctionStatus.Sold)).Count() </h3>
+    <h3>Продано на @Model.Auctions.Where(a => a.Status == AuctionStatus.Sold).Select(a => a.CurrentPrice).Sum() </h3>
+   
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Текущая цена</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var auction in Model.Auctions)
+            {
+                <tr>
+                    <td>@auction.Title</td>
+                    <td>
+                        @if (auction.Status == AuctionStatus.Closing || auction.Status == AuctionStatus.Sold)
+                        {
+                            <span>@auction.CurrentPrice (закрыт)</span>
+                        }
+                        else
+                        {
+                            <span>@auction.CurrentPrice</span>
+                        }
+                    </td>
+                    <td>
+                        
+                            <span>@auction.Status</span>
+                    </td>
+                    <td>
+                        <a href="/Auctions/Details/@auction.Id" >Открыть</a>
+
+                        @if (auction.OwnerId == currentUserId && auction.Status == AuctionStatus.Active)
+                        {
+                            <form method="post" asp-page-handler="Close" asp-route-id="@auction.Id" style="display:inline;">
+                                <button type="submit" class="btn-submit" style="background:#e74c3c; margin-left:10px;">Закрыть</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    
+    <h2>ПИРАТСКОЕ НАГРАБЛЕННОЕ</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Цена</th>
+                <th>Продавец</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var auction in Model.WinnedAuctions)
+            {
+                <tr>
+                    <td>@auction.Title</td>
+                    <td>
+                        <span>@auction.CurrentPrice</span>
+                    </td>
+                    <td>
+                        
+                            <span>@Model.Sellers.Where(s=>s.Id == auction.OwnerId).First().UserName</span>
+                    </td>
+                    
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,34 @@
+@page
+@model AuctionApp.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<div class="container">
+    <h2>Вход</h2>
+
+    <form method="post" class="form-container">
+        <div class="form-group">
+            <label asp-for="Input.Email"></label>
+            <input asp-for="Input.Email" />
+            <span asp-validation-for="Input.Email" class="validation-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Input.Password"></label>
+            <input asp-for="Input.Password" type="password" />
+            <span asp-validation-for="Input.Password" class="validation-error"></span>
+        </div>
+
+        <div class="form-group" style="flex-direction: row; align-items: center;">
+            <input asp-for="Input.RememberMe" style="width:auto; margin-right: 8px;" />
+            <label asp-for="Input.RememberMe" style="margin:0;">Запомнить меня</label>
+        </div>
+
+        <button type="submit" class="btn-submit">Войти</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

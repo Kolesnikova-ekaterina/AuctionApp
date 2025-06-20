@@ -1,0 +1,47 @@
+@page
+@model AuctionApp.Pages.Auctions.CreateModel
+@{
+    ViewData["Title"] = "Создать новый лот";
+}
+
+<div class="container">
+    <h2>Создать новый лот</h2>
+
+    <form method="post" class="form-container">
+        <div class="form-group">
+            <label asp-for="Auction.Title"></label>
+            <input asp-for="Auction.Title" />
+            <span asp-validation-for="Auction.Title" class="validation-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Auction.Description"></label>
+            <textarea asp-for="Auction.Description"></textarea>
+            <span asp-validation-for="Auction.Description" class="validation-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Auction.StartPrice"></label>
+            <input asp-for="Auction.StartPrice" type="number" step="0.01" min="0" />
+            <span asp-validation-for="Auction.StartPrice" class="validation-error"></span>
+        </div>
+
+        <button id="createBtn" type="submit" class="btn-submit">Создать</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+         document.getElementById("createBtn")?.addEventListener("click", function () {
+            if (typeof connection !== "undefined") {
+                    connection.invoke("AddNewAuction");
+
+            }
+
+         });
+        
+    </script>
+}

@@ -1,0 +1,91 @@
+@page "{id:int}"
+@model AuctionApp.Pages.Auctions.DetailsModel
+@using AuctionApp.Models
+@{
+    ViewData["Title"] = "Аукцион - " + Model.Auction.Title;
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<div class="container">
+    <h2>@Model.Auction.Title</h2>
+    <p>@Model.Auction.Description</p>
+    <p>Текущая цена: <span id="currentPrice">@Model.Auction.CurrentPrice</span></p>
+    <p>Статус: <span id="status">@Model.Auction.Status</span></p>
+
+    @if (Model.Auction.Status == AuctionStatus.Active && currentUserId!=null && currentUserId!= Model.Auction.OwnerId )
+    {
+        <div class="form-group" style="max-width: 200px;">
+            <input type="number" id="bidAmount" min="@Model.Auction.CurrentPrice + 1" step="1" placeholder="Ваша ставка" />
+            <button id="placeBidBtn" class="btn-submit" style="margin-top: 10px; width: 100%;">Сделать ставку</button>
+        </div>
+    }
+    @foreach(var bid in @Model.Bids){
+    <div id="messageshistory">@bid.User.UserName сделал ставку @bid.Amount </div>
+    }
+    <div id="messages"></div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        
+
+        const auctionId = @Model.Auction.Id;
+        
+
+        if (typeof connection !== "undefined") {
+            
+
+            connection.on("BidPlaced", (message, newPrice) => {
+                console.info("New price:", newPrice);
+                const priceElem = document.getElementById("currentPrice");
+                if (priceElem) {
+                    priceElem.innerText = newPrice;
+                }
+
+                const msg = document.createElement("div");
+                msg.textContent = message;
+                const messagesContainer = document.getElementById("messages");
+                if (messagesContainer) {
+                    messagesContainer.appendChild(msg);
+                }
+            });
+
+            connection.on("Notify", (message) => {
+                const msg = document.createElement("div");
+                msg.textContent = message;
+                const messagesContainer = document.getElementById("messages");
+                if (messagesContainer) {
+                    messagesContainer.appendChild(msg);
+                }
+            });
+
+            connection.on("Error", (message) => {
+                alert(message);
+            });
+            
+            document.getElementById("placeBidBtn")?.addEventListener("click", function () {
+            const amount = parseFloat(document.getElementById("bidAmount").value);
+            if (!amount || amount <= @Model.Auction.CurrentPrice) {
+                alert("Введите сумму больше текущей цены");
+                return;
+            }
+            try {
+                // После успешной ставки присоединяемся к группе аукциона
+                connection.invoke("JoinAuctionGroup", auctionId);
+                connection.invoke("PlaceBid", auctionId, amount);
+                // После успешной ставки присоединяемся к группе аукциона
+                //connection.invoke("JoinAuctionGroup", auctionId);
+                console.log(`Присоединились к группе auction-${auctionId}`);
+            } catch (err) {
+                console.error(err);
+            }
+            //connection.invoke("PlaceBid", auctionId, amount).catch(err => alert(err));
+        });
+        } else {
+            console.error("SignalR connection is not defined");
+        }
+
+        
+    </script>
+}

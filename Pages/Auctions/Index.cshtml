@@ -1,0 +1,92 @@
+@page
+@model AuctionApp.Pages.Auctions.IndexModel
+@using AuctionApp.Models
+@inject Microsoft.AspNetCore.Identity.UserManager<AuctionApp.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Список аукционов";
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+}
+
+<div class="container auction-content">
+    <div id="AddAuctionNotify"></div>
+    <h2>Аукционы</h2>
+    @if (currentUserId != null){
+    <a asp-page="Create" class="btn-submit" style="display: inline-block; width: auto; margin-bottom: 20px;">Создать новый лот</a>
+    }
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Текущая цена</th>
+                <th>Продавец</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var auction in Model.Auctions)
+            {
+                <tr>
+                    <td>@auction.Title</td>
+                    <td>
+                        @if (auction.Status == AuctionStatus.Closing || auction.Status == AuctionStatus.Sold)
+                        {
+                            <span>@auction.CurrentPrice (закрыт)</span>
+                        }
+                        else
+                        {
+                            <span>@auction.CurrentPrice</span>
+                        }
+                    </td>
+                    <td>
+                        @{
+                        var seller = @Model.Sellers.Where(s => s.Id == auction.OwnerId).FirstOrDefault();
+                        }
+                        @if(seller != null){
+                        <a href="/Account/@seller.UserName">@seller.UserName</a>
+                        }else{
+                            <span>Anon</span>
+                        }
+                    </td>
+                    <td>
+                       
+                            <span>@auction.Status</span>
+                    </td>
+                    <td>
+                        <a asp-page="Details" asp-route-id="@auction.Id">Открыть</a>
+
+                        @if (auction.OwnerId == currentUserId && auction.Status == AuctionStatus.Active)
+                        {
+                            <form method="post" asp-page-handler="Close" asp-route-id="@auction.Id" style="display:inline;">
+                                <button type="submit" class="btn-submit" style="background:#e74c3c; margin-left:10px;">Закрыть</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        if (typeof connection !== "undefined") {
+            connection.on("AddNewAuction_recieve", () => {
+                //AddAuctionNotify
+                const msg = document.createElement("div");
+                msg.textContent = "Создан новый акцион!";
+                const messagesContainer = document.getElementById("AddAuctionNotify");
+                if (messagesContainer) {
+                    messagesContainer.appendChild(msg);
+                }
+                
+            });
+
+        }
+
+    </script>
+    }
+
+
