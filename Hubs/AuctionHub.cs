@@ -23,7 +23,7 @@ namespace AuctionApp.Hubs
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"auction-{auctionId}");
             await Clients.OthersInGroup($"auction-{auctionId}")
-            .SendAsync("Notify", $"{Context.User.Identity.Name} присоединился к аукциону");
+            .SendAsync("NotifyD", $"{Context.User.Identity.Name} присоединился к аукциону");
         }
 
         public async Task SendAlert(string message)
@@ -43,17 +43,22 @@ namespace AuctionApp.Hubs
         public async Task PlaceBid(int auctionId, decimal amount)
         {
             //System.Console.WriteLine(Context.UserIdentifier);
+            var auction = await _auctionService.GetAuctionAsync(auctionId);
+            var WinnerId = auction.WinnerId;
             var user = await _userManager.GetUserAsync(Context.User);
             var result = await _auctionService.PlaceBidAsync(auctionId, user.Id, amount);
             //System.Console.WriteLine(result);
 
             if (result.Success)
             {
-                await Clients.Group($"auction-{auctionId}").SendAsync("BidPlaced", $"Пользователь {user.UserName} сделал ставку: {amount}", amount);
-                // Отправляем всем остальным (кроме вызывающего) глобальное оповещение
-                await Clients.Others.SendAsync("ReceiveAlert", $"Пользователь {user.UserName} сделал ставку на аукционе #{auctionId}");
-                // Уведомляем хозяина лота отдельно
-                var auction = await _auctionService.GetAuctionAsync(auctionId);
+                
+                await Clients.All.SendAsync("BidPlaced", $"Пользователь {user.UserName} сделал ставку: {amount}", amount);
+                
+                if (WinnerId!=null){
+                    await Clients.User(WinnerId).SendAsync("ReceiveAlert", $"Пользователь {user.UserName} сделал ставку на аукционе #{auction.Title}");
+                }
+                
+                //var auction = await _auctionService.GetAuctionAsync(auctionId);
                 if (auction != null)
                 {
                     await Clients.User(auction.OwnerId)
@@ -75,7 +80,6 @@ namespace AuctionApp.Hubs
 
             var ownerId = auction.OwnerId; 
 
-            // Отправляем сообщение хозяину лота
             await Clients.User(ownerId).SendAsync("Notify", message);
         }
             }

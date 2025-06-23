@@ -39,7 +39,7 @@ namespace AuctionApp.Controllers
                 return NotFound();
             }
 
-            return applicationUser;
+            return Ok(applicationUser);
         }
 
         // PUT: api/User/5

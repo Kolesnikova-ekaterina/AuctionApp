@@ -13,10 +13,7 @@
         <div class="nav-container">
             <a class="nav-logo" asp-page="/Auctions/Index">AuctionApp</a>
 
-            <!--<ul class="nav-menu">
-                <li><a asp-page="/Auctions/Index">Аукционы</a></li>
-                <li><a asp-page="/Auctions/Create">Создать лот</a></li>
-            </ul>-->
+            
 
             <ul class="nav-auth">
                 @if (User.Identity.IsAuthenticated)
@@ -49,11 +46,10 @@
     <script>
         window.connection = new signalR.HubConnectionBuilder()
             .withUrl("/auctionHub")
-            .withAutomaticReconnect()
             .build();
 
         connection.on("ReceiveAlert", (message) => {
-            showAlert(message); // Кастомное отображение
+            alert(message); 
             });
 
         connection.start()
@@ -67,7 +63,7 @@
 
          connection.on("Notify", (message) => {
                 // Отобразить уведомление хозяину лота
-                alert(`Уведомление для владельца: ${message}`);
+                alert(`Уведомление: ${message}`);
             });
 
     </script>
