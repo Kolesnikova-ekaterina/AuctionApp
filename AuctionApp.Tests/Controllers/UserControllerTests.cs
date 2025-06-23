@@ -41,7 +41,7 @@ namespace AuctionApp.Tests.Controllers
 
             var actionResult = await controller.GetApplicationUser("user1");
 
-            Assert.NotNull(actionResult); // Проверяем, что метод не возвращает null
+            Assert.NotNull(actionResult); 
 
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             Assert.NotNull(okResult);
@@ -83,10 +83,10 @@ namespace AuctionApp.Tests.Controllers
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            // Отсоединяем первый объект, чтобы избежать конфликта трекинга
+           
             context.Entry(user).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
 
-            // Попытка добавить пользователя с тем же Id
+          
             var duplicateUser = new ApplicationUser { Id = "user1", UserName = "duplicate@example.com" };
 
             var actionResult = await controller.PostApplicationUser(duplicateUser);
