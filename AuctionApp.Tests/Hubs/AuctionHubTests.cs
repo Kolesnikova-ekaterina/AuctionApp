@@ -8,7 +8,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Xunit;
 
-// Заглушка класса PlaceBidResult (создайте в тестовом проекте, если отсутствует)
+
 public class PlaceBidResult
 {
     public bool Success { get; set; }
